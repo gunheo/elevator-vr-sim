@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>현대엘리베이터 VR 체험</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: #000;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    #container {
+      width: 100vw;
+      height: 100vh;
+      background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/OTIS_Gen2_Elevator_Interior.jpg/1920px-OTIS_Gen2_Elevator_Interior.jpg');
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      position: relative;
+    }
+    #panel {
+      position: absolute;
+      top: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.7);
+      padding: 20px;
+      border-radius: 12px;
+      color: white;
+      text-align: center;
+    }
+    select, button {
+      font-size: 16px;
+      padding: 10px;
+      margin: 5px;
+      border-radius: 8px;
+      border: none;
+    }
+    #display {
+      font-size: 48px;
+      font-weight: bold;
+      color: #00ffcc;
+      margin-top: 10px;
+      text-shadow: 0 0 10px #00ffcc;
+    }
+    #doors {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      top: 0;
+      left: 0;
+      z-index: 5;
+    }
+    .door {
+      flex: 1;
+      background-color: #111;
+      transition: all 1s ease;
+    }
+    .open-left {
+      transform: translateX(-100%);
+    }
+    .open-right {
+      transform: translateX(100%);
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div id="doors">
+      <div class="door" id="leftDoor"></div>
+      <div class="door" id="rightDoor"></div>
+    </div>
+    <div id="panel">
+      <label for="speed">속도 선택:</label>
+      <select id="speed">
+        <option value="1000">60m/min</option>
+        <option value="600">180m/min</option>
+        <option value="300">300m/min</option>
+        <option value="150">600m/min</option>
+      </select>
+      <button onclick="startElevator()">탑승 시작</button>
+      <div id="display">1층</div>
+    </div>
+  </div>
+
+  <audio id="move" src="https://freesound.org/data/previews/146/146720_2437358-lq.mp3" loop></audio>
+  <audio id="ding" src="https://freesound.org/data/previews/341/341695_3248244-lq.mp3"></audio>
+
+  <script>
+    let currentFloor = 1;
+    let maxFloor = 80;
+    let intervalId;
+
+    function playVoice(text) {
+      const msg = new SpeechSynthesisUtterance();
+      msg.text = text;
+      msg.lang = 'ko-KR';
+      window.speechSynthesis.speak(msg);
+    }
+
+    function openDoors() {
+      document.getElementById("leftDoor").classList.add("open-left");
+      document.getElementById("rightDoor").classList.add("open-right");
+    }
+
+    function closeDoors() {
+      document.getElementById("leftDoor").classList.remove("open-left");
+      document.getElementById("rightDoor").classList.remove("open-right");
+    }
+
+    function startElevator() {
+      clearInterval(intervalId);
+      closeDoors();
+      const speed = parseInt(document.getElementById("speed").value);
+      currentFloor = 1;
+      document.getElementById("display").innerText = currentFloor + "층";
+      playVoice("엘리베이터가 출발합니다.");
+      document.getElementById("move").play();
+
+      setTimeout(() => {
+        intervalId = setInterval(() => {
+          if (currentFloor >= maxFloor) {
+            clearInterval(intervalId);
+            document.getElementById("move").pause();
+            document.getElementById("ding").play();
+            playVoice("도착했습니다.");
+            openDoors();
+          } else {
+            currentFloor++;
+            document.getElementById("display").innerText = currentFloor + "층";
+            playVoice(currentFloor + "층입니다");
+          }
+        }, speed);
+      }, 1500);
+    }
+  </script>
+</body>
+</html>
